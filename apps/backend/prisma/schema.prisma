@@ -1,0 +1,277 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  address     String?
+  phone       String?
+  email       String?
+  website     String?
+  logo        String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  churches Church[]
+  users    User[]
+
+  @@map("organizations")
+}
+
+model Church {
+  id          String   @id @default(cuid())
+  name        String
+  address     String?
+  phone       String?
+  email       String?
+  website     String?
+  pastor      String?
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+
+  users        User[]
+  members      Member[]
+  meetings     Meeting[]
+  ministries   Ministry[]
+  offerings    Offering[]
+  userAccess   UserChurchAccess[]
+
+  @@map("churches")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  firstName String
+  lastName  String
+  role      UserRole @default(USER)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+  church         Church?      @relation(fields: [churchId], references: [id])
+  churchId       String?
+
+  followUpTasks FollowUpTask[]
+  churchAccess  UserChurchAccess[]
+
+  @@map("users")
+}
+
+model UserChurchAccess {
+  id        String   @id @default(cuid())
+  role      UserRole @default(USER)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user     User   @relation(fields: [userId], references: [id])
+  userId   String
+  church   Church @relation(fields: [churchId], references: [id])
+  churchId String
+
+  @@unique([userId, churchId])
+  @@map("user_church_access")
+}
+
+model Member {
+  id          String      @id @default(cuid())
+  firstName   String
+  lastName    String
+  email       String?
+  phone       String?
+  address     String?
+  birthDate   DateTime?
+  baptismDate DateTime?
+  status      MemberStatus @default(ACTIVE)
+  notes       String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Relations
+  church   Church @relation(fields: [churchId], references: [id])
+  churchId String
+
+  attendances   Attendance[]
+  ministries    MemberMinistry[]
+  followUpTasks FollowUpTask[]
+
+  @@map("members")
+}
+
+model Meeting {
+  id          String      @id @default(cuid())
+  title       String
+  description String?
+  date        DateTime
+  type        MeetingType
+  location    String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Relations
+  church   Church @relation(fields: [churchId], references: [id])
+  churchId String
+
+  attendances Attendance[]
+
+  @@map("meetings")
+}
+
+model Attendance {
+  id        String   @id @default(cuid())
+  present   Boolean  @default(false)
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  member    Member  @relation(fields: [memberId], references: [id])
+  memberId  String
+  meeting   Meeting @relation(fields: [meetingId], references: [id])
+  meetingId String
+
+  @@unique([memberId, meetingId])
+  @@map("attendances")
+}
+
+model Ministry {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  leader      String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  church   Church @relation(fields: [churchId], references: [id])
+  churchId String
+
+  members MemberMinistry[]
+
+  @@map("ministries")
+}
+
+model MemberMinistry {
+  id        String   @id @default(cuid())
+  role      String?
+  joinedAt  DateTime @default(now())
+  leftAt    DateTime?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  member     Member   @relation(fields: [memberId], references: [id])
+  memberId   String
+  ministry   Ministry @relation(fields: [ministryId], references: [id])
+  ministryId String
+
+  @@unique([memberId, ministryId])
+  @@map("member_ministries")
+}
+
+model FollowUpTask {
+  id          String           @id @default(cuid())
+  title       String
+  description String?
+  dueDate     DateTime?
+  status      FollowUpStatus   @default(PENDING)
+  priority    TaskPriority     @default(MEDIUM)
+  notes       String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  // Relations
+  assignedTo   User   @relation(fields: [assignedToId], references: [id])
+  assignedToId String
+  member       Member @relation(fields: [memberId], references: [id])
+  memberId     String
+
+  @@map("follow_up_tasks")
+}
+
+model Offering {
+  id          String      @id @default(cuid())
+  amount      Decimal     @db.Decimal(10, 2)
+  type        OfferingType
+  description String?
+  date        DateTime
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Relations
+  church   Church @relation(fields: [churchId], references: [id])
+  churchId String
+
+  @@map("offerings")
+}
+
+// Enums
+enum UserRole {
+  ADMIN
+  PASTOR
+  LEADER
+  USER
+}
+
+enum MemberStatus {
+  ACTIVE
+  INACTIVE
+  VISITOR
+  MEMBER
+}
+
+enum MeetingType {
+  SUNDAY_SERVICE
+  PRAYER_MEETING
+  BIBLE_STUDY
+  YOUTH_MEETING
+  SPECIAL_EVENT
+  OTHER
+}
+
+enum FollowUpStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum OfferingType {
+  TITHE
+  OFFERING
+  SPECIAL_OFFERING
+  DONATION
+}
