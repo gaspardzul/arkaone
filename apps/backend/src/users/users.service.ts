@@ -184,15 +184,22 @@ export class UsersService {
   }
 
   async getAvailableChurches(userId: string) {
+    console.log('🚨🚨🚨 SERVICIO EJECUTÁNDOSE - getAvailableChurches 🚨🚨🚨');
     console.log('🔍 Debug Service - Buscando usuario con ID:', userId);
     console.log('🔍 Debug Service - Tipo de userId:', typeof userId);
+    console.log('🔍 Debug Service - Longitud del ID:', userId?.length);
     
     // Primero buscar todos los usuarios para debug
     const allUsers = await this.prisma.user.findMany({
       select: { id: true, email: true }
     });
     console.log('🔍 Debug Service - Todos los usuarios:', allUsers);
+    console.log('🔍 Debug Service - Comparando IDs:');
+    allUsers.forEach(u => {
+      console.log(`  - BD: "${u.id}" vs Buscado: "${userId}" -> Match: ${u.id === userId}`);
+    });
     
+    console.log('🔍 Debug Service - Ejecutando consulta Prisma...');
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       include: {

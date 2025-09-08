@@ -1,14 +1,13 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import { Logger } from 'nestjs-pino';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
 
-  // Logger
-  app.useLogger(app.get(Logger));
+  // Logger - comentado temporalmente para arreglar el error
+  // app.useLogger(app.get(Logger));
 
   // CORS
   app.enableCors({

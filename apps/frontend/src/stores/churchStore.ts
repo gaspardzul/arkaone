@@ -68,7 +68,7 @@ export const useChurchStore = create<ChurchState>()(
       fetchAvailableChurches: async () => {
         set({ loading: true, error: null });
         try {
-          const response = await api.get('/users/available-churches');
+          const response = await api.get('/test/churches');
           const data = response.data;
           
           // Manejar nueva estructura de respuesta

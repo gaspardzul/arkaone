@@ -75,11 +75,37 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'Lista de iglesias disponibles' })
   async getAvailableChurches(@Request() req) {
     console.log('🚨🚨🚨 CONTROLADOR EJECUTÁNDOSE - AVAILABLE CHURCHES 🚨🚨🚨');
+    console.log('🔍 Debug Controller - req.user:', req.user);
     
     try {
-      const result = await this.usersService.getAvailableChurches(req.user.userId);
-      console.log('🔍 Debug Controller - Resultado del servicio:', result);
-      return result;
+      // Crear respuesta temporal con datos hardcodeados para probar el frontend
+      const mockResponse = [
+        {
+          id: 'church-shalom',
+          name: 'Iglesia Shalom',
+          organization: {
+            id: 'org-arkaone',
+            name: 'Asociación Cristiana ArkaOne'
+          },
+          role: 'LEADER',
+          isPrimary: true,
+          canAccess: true
+        },
+        {
+          id: 'church-fuente',
+          name: 'Fuente de Agua Viva',
+          organization: {
+            id: 'org-arkaone',
+            name: 'Asociación Cristiana ArkaOne'
+          },
+          role: 'LEADER',
+          isPrimary: false,
+          canAccess: true
+        }
+      ];
+      
+      console.log('🔍 Debug Controller - Enviando respuesta mock:', mockResponse);
+      return mockResponse;
     } catch (error) {
       console.log('🔍 Debug Controller - Error capturado:', error);
       throw error;
@@ -93,6 +119,7 @@ export class UsersController {
     console.log('🔍 req.user:', req.user);
     return { message: 'Test exitoso', user: req.user };
   }
+
 
   @Post('select-church')
   @ApiOperation({ summary: 'Seleccionar iglesia para trabajar' })

@@ -107,6 +107,55 @@ async function main() {
 
   console.log('✅ Usuario admin creado:', adminUser.email);
 
+  // Crear un segundo usuario con acceso a ambas iglesias
+  const managerUser = await prisma.user.upsert({
+    where: { email: 'manager@arkaone.local' },
+    update: {},
+    create: {
+      email: 'manager@arkaone.local',
+      password: hashedPassword,
+      firstName: 'Manager',
+      lastName: 'Iglesias',
+      role: 'LEADER',
+      organizationId: organization.id,
+      churchId: church1.id, // Iglesia principal por defecto
+    },
+  });
+
+  // Crear accesos a ambas iglesias para el manager
+  await Promise.all([
+    prisma.userChurchAccess.upsert({
+      where: {
+        userId_churchId: {
+          userId: managerUser.id,
+          churchId: church1.id,
+        },
+      },
+      update: {},
+      create: {
+        userId: managerUser.id,
+        churchId: church1.id,
+        role: 'LEADER',
+      },
+    }),
+    prisma.userChurchAccess.upsert({
+      where: {
+        userId_churchId: {
+          userId: managerUser.id,
+          churchId: church2.id,
+        },
+      },
+      update: {},
+      create: {
+        userId: managerUser.id,
+        churchId: church2.id,
+        role: 'LEADER',
+      },
+    }),
+  ]);
+
+  console.log('✅ Usuario manager creado:', managerUser.email);
+
   // Crear algunos ministerios de ejemplo para ambas iglesias
   const ministries = await Promise.all([
     // Ministerios para Iglesia Shalom
